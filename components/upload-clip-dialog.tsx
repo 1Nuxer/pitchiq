@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Upload, File, X } from "lucide-react"
+import { Link, Youtube, Play } from "lucide-react"
 import { toast } from "sonner"
 
 interface UploadClipDialogProps {
@@ -26,130 +26,116 @@ interface UploadClipDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+type Platform = 'youtube' | 'vimeo' | null;
+
 export function UploadClipDialog({ open, onOpenChange }: UploadClipDialogProps) {
-  const [file, setFile] = useState<File | null>(null)
+  const [urlInput, setUrlInput] = useState("")
+  const [thumbnail, setThumbnail] = useState("")
+  const [platform, setPlatform] = useState<Platform>(null)
   const [matchLabel, setMatchLabel] = useState("")
   const [sessionType, setSessionType] = useState<"Game" | "Practice">("Game")
-const [isUploading, setIsUploading] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [speed, setSpeed] = useState(0)
-  const [eta, setEta] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
+const fetchThumbnail = async (url: string): Promise<{thumbnail: string, platform: Platform} | null> => {
+  try {
+    let oembedUrl = ''
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`
+    } else if (url.includes('vimeo.com')) {
+      oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`
+    } else {
+      return null
     }
-  }
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
+    const response = await fetch(oembedUrl)
+    if (!response.ok) return null
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const droppedFile = e.dataTransfer.files?.[0]
-    if (droppedFile) {
-      setFile(droppedFile)
+    const data = await response.json()
+    return {
+      thumbnail: data.thumbnail_url || data.thumbnail_width ? data.thumbnail_url : '',
+      platform: url.includes('youtube.com') || url.includes('youtu.be') ? 'youtube' : 'vimeo'
     }
+  } catch {
+    return null
   }
+}
+
+useEffect(() => {
+  if (urlInput.trim()) {
+    const timeoutId = setTimeout(async () => {
+      const result = await fetchThumbnail(urlInput)
+      if (result) {
+        setThumbnail(result.thumbnail)
+        setPlatform(result.platform)
+      } else {
+        setThumbnail('')
+        setPlatform(null)
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  } else {
+    setThumbnail('')
+    setPlatform(null)
+  }
+}, [urlInput])
 
   const handleUpload = async () => {
-    if (!file || !matchLabel) {
-      toast.error("Please fill in all required fields")
+    if (!urlInput.trim() || !matchLabel) {
+      toast.error("Please fill URL and label")
       return
     }
 
     setIsUploading(true)
-    setProgress(0)
-    setSpeed(0)
-    setEta('')
     
     try {
       const formData = new FormData()
-      formData.append("file", file)
+      formData.append("url", urlInput.trim())
       formData.append("matchLabel", matchLabel)
       formData.append("sessionType", sessionType)
+      formData.append("title", platform === 'youtube' ? 'YouTube Clip' : 'Vimeo Clip')
 
-      // Upload with progress tracking using XMLHttpRequest
-      await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest()
-        const startTime = Date.now()
-        let lastLoaded = 0
-        let speedTimer: NodeJS.Timeout
-
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable) {
-            const loaded = e.loaded
-            setProgress(Math.round((loaded / e.total) * 100))
-
-            // Calculate speed (KB/s)
-            const now = Date.now()
-            const elapsed = (now - startTime) / 1000
-            const currentSpeed = (loaded - lastLoaded) / elapsed / 1000
-            setSpeed(Math.round(currentSpeed * 10) / 10)
-
-            // Removed ETA (inaccurate)
-
-
-            lastLoaded = loaded
-          }
-        })
-
-        xhr.onload = async () => {
-          setProgress(100) // Close dialog on 100%
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const uploadData = JSON.parse(xhr.responseText)
-
-            // Save clip metadata
-            const saveResponse = await fetch("/api/clips", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                matchLabel,
-                sessionType,
-                fileName: file.name,
-                videoUrl: uploadData.videoUrl,
-              }),
-            })
-
-            if (!saveResponse.ok) {
-              reject(new Error("Failed to save clip metadata"))
-              return
-            }
-
-            toast.success("Clip uploaded successfully!", {
-              description: `${matchLabel} ready`,
-            })
-
-            resolve(null)
-          } else {
-            reject(new Error(`Upload failed: ${xhr.status}`))
-          }
-        }
-
-
-        xhr.onerror = () => reject(new Error('Upload network error'))
-        xhr.open('POST', '/api/upload')
-        xhr.send(formData)
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
       })
 
-      // Reset form & close dialog
-      setFile(null)
+      if (!uploadResponse.ok) {
+        const err = await uploadResponse.json()
+        throw new Error(err.error || 'Upload failed')
+      }
+
+      const uploadData = await uploadResponse.json()
+
+      const saveResponse = await fetch("/api/clips", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchLabel,
+          sessionType,
+          title: uploadData.title || 'New Clip',
+          videoUrl: uploadData.videoUrl,
+        }),
+      })
+
+      if (!saveResponse.ok) {
+        throw new Error("Failed to save metadata")
+      }
+
+      toast.success("Clip added successfully!")
+      setUrlInput('')
+      setThumbnail('')
+      setPlatform(null)
       setMatchLabel("")
       setSessionType("Game")
-      setProgress(0)
-      setIsUploading(false)
       onOpenChange(false)
-      setTimeout(() => window.location.reload(), 500) // Brief success view
+      setTimeout(() => window.location.reload(), 500)
     } catch (error) {
-      setIsUploading(false)
-      setProgress(0)
-      toast.error("Upload failed", {
-        description: error instanceof Error ? error.message : "Please try again",
+      toast.error("Add failed", {
+        description: error instanceof Error ? error.message : "Try again"
       })
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -163,71 +149,32 @@ const [isUploading, setIsUploading] = useState(false)
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* File upload */}
-          <div className="space-y-2">
-            <Label>Video File ({file?.size ? (file.size / (1024*1024)).toFixed(1) + 'MB' : ''})</Label>
-            {file ? (
-              <div className="flex items-center gap-3 rounded-lg border border-border bg-secondary/50 p-3">
-                <File className="h-5 w-5 text-primary" />
-                <span className="flex-1 truncate text-sm text-foreground">{file.name}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => setFile(null)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <div 
-                className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary/50 hover:bg-secondary/50"
-                onClick={() => document.getElementById("file-input")?.click()}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              >
-                <Upload className="h-8 w-8 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  Click to upload or drag and drop
-                </span>
-                <span className="text-xs text-muted-foreground">MP4, MOV up to 500MB</span>
-                <input
-                  id="file-input"
-                  type="file"
-                  accept="video/*"
-                  className="hidden"
-                  onChange={handleFileChange}
+          {/* URL input + preview */}
+          <div className="space-y-3">
+            <Label htmlFor="url-input">Paste YouTube or Vimeo URL</Label>
+            <Input
+              id="url-input"
+              placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              className="w-full"
+            />
+            {thumbnail && (
+              <div className="flex items-center gap-2 p-2 bg-secondary/50 rounded-lg">
+                <img 
+                  src={thumbnail} 
+                  alt="Preview" 
+                  className="w-16 h-9 object-cover rounded"
                 />
+                <div className="text-xs text-muted-foreground">
+                  {platform === 'youtube' ? 'YouTube' : 'Vimeo'} • Ready to add
+                </div>
               </div>
             )}
+            {!thumbnail && urlInput.trim() && (
+              <p className="text-xs text-destructive">Invalid URL or unsupported platform</p>
+            )}
           </div>
-
-          {isUploading && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                    <span>Upload Progress</span>
-                    <span>{progress}%</span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-muted">
-                    <div 
-                      className="h-2 rounded-full bg-primary transition-all duration-300" 
-                      style={{width: `${progress}%`}}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground space-y-0.5">
-                <div className="flex justify-between">
-                  <span>Speed:</span>
-                  <span>{speed} KB/s</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-
 
           {/* Match label */}
           <div className="space-y-2">
@@ -260,8 +207,8 @@ const [isUploading, setIsUploading] = useState(false)
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleUpload} disabled={isUploading}>
-            {isUploading ? "Uploading..." : "Upload Clip"}
+  <Button onClick={handleUpload} disabled={isUploading || !urlInput.trim() || !matchLabel.trim()}>
+            {isUploading ? "Adding..." : "Add Clip"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -15,68 +15,40 @@ async function ensureUploadsDir() {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const file = formData.get("file") as File
+    const url = formData.get("url") as string
+    const title = formData.get("title") as string
     const matchLabel = formData.get("matchLabel") as string
     const sessionType = formData.get("sessionType") as string
 
     // Validate inputs
-    if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 }
-      )
+    if (!url) {
+      return NextResponse.json({ error: "No URL provided" }, { status: 400 })
     }
 
     if (!matchLabel) {
-      return NextResponse.json(
-        { error: "No match label provided" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "No match label provided" }, { status: 400 })
     }
 
-    // Validate file type
-    if (!file.type.startsWith("video/")) {
-      return NextResponse.json(
-        { error: "File must be a video" },
-        { status: 400 }
-      )
+    // Validate YouTube/Vimeo
+    const ytRegex = /youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\//i
+    if (!ytRegex.test(url)) {
+      return NextResponse.json({ error: "Must be YouTube or Vimeo URL" }, { status: 400 })
     }
 
-    // Validate file size (500MB max)
-    const maxSize = 500 * 1024 * 1024
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: "File size exceeds 500MB limit" },
-        { status: 400 }
-      )
-    }
-
-    // Save file to public/uploads
-    await ensureUploadsDir()
-    
-    const buffer = await file.arrayBuffer()
     const timestamp = Date.now()
-    const ext = file.name.split('.').pop() || 'mp4'
-    const filename = `${timestamp}.${ext}`
-    const filepath = path.join(uploadsDir, filename)
-    
-    await fs.writeFile(filepath, new Uint8Array(buffer))
-
     const clipId = `clip_${timestamp}_${Math.random().toString(36).substr(2, 9)}`
-    const videoUrl = `/uploads/${filename}`
+    const videoUrl = url
 
-    console.log(`Upload saved: ${matchLabel}`)
-    console.log(`File: ${filename} to ${filepath}`)
-    console.log(`URL: ${videoUrl}`)
+    console.log(`URL clip saved: ${matchLabel} ${url}`)
 
     return NextResponse.json(
       {
         success: true,
-        message: "Clip uploaded successfully",
+        title,
+        videoUrl,
         clipId,
         matchLabel,
         sessionType,
-        videoUrl,
       },
       { status: 200 }
     )

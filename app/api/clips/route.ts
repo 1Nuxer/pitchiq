@@ -42,9 +42,9 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { matchLabel, sessionType, fileName, videoUrl, aiSummary, suggestedDrill, annotations } = body
+    const { matchLabel, sessionType, title, videoUrl, aiSummary, suggestedDrill, annotations } = body
 
-    if (!matchLabel || !sessionType || !fileName) {
+    if (!matchLabel || !sessionType || !title) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       id: `clip_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       matchLabel,
       sessionType,
-      fileName,
+      title,
       videoUrl: videoUrl || "",
       date: new Date().toLocaleDateString("en-US", {
         year: "numeric",

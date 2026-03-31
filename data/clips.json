@@ -1,1 +1,108 @@
-[]
+[
+  {
+    "id": "clip_1774984394332_l52r24a4v",
+    "matchLabel": "Test",
+    "sessionType": "Game",
+    "title": "YouTube Clip",
+    "videoUrl": "https://www.youtube.com/watch?v=iGMk6AaB60Q",
+    "date": "March 31, 2026",
+    "tags": [],
+    "aiSummary": "AI analysis automatically reviewed this clip and found 16 sprint efforts, 23 passes with 87% success. shot accuracy is 69%. The key tactical theme is press coordination and transition control.",
+    "suggestedDrill": {
+      "title": "Pressing Coordination Box",
+      "description": "6v4 box with designated press triggers and cover shadows. Focus on communication between midfield and forward line.",
+      "duration": "15-20 min"
+    },
+    "annotations": [
+      {
+        "id": "1",
+        "timestamp": "21:34",
+        "type": "transition",
+        "description": "Quick vertical pass into space behind defensive line, creating 3v2 overload"
+      },
+      {
+        "id": "2",
+        "timestamp": "23:12",
+        "type": "shape",
+        "description": "Defensive line drops too deep allowing opponent to advance into final third"
+      },
+      {
+        "id": "3",
+        "timestamp": "23:47",
+        "type": "press-error",
+        "description": "Press trigger missed by #8, allowing easy switch of play to weak side"
+      },
+      {
+        "id": "4",
+        "timestamp": "25:03",
+        "type": "recovery",
+        "description": "Excellent recovery run by #4 to cover exposed space on right flank"
+      },
+      {
+        "id": "5",
+        "timestamp": "28:15",
+        "type": "key-pass",
+        "description": "Through ball from #10 breaks defensive line, creates scoring opportunity"
+      }
+    ],
+    "metrics": {
+      "sprintCount": 16,
+      "passes": 23,
+      "passSuccess": 87,
+      "shotAccuracy": 69
+    }
+  },
+  {
+    "id": "clip_1774984401025_5pscx8u98",
+    "matchLabel": "Test",
+    "sessionType": "Practice",
+    "title": "YouTube Clip",
+    "videoUrl": "https://www.youtube.com/watch?v=iGMk6AaB60Q",
+    "date": "March 31, 2026",
+    "tags": [],
+    "aiSummary": "AI analysis automatically reviewed this clip and found 22 sprint efforts, 40 passes with 90% success. shot accuracy is 41%. The key tactical theme is press coordination and transition control.",
+    "suggestedDrill": {
+      "title": "Pressing Coordination Box",
+      "description": "6v4 box with designated press triggers and cover shadows. Focus on communication between midfield and forward line.",
+      "duration": "15-20 min"
+    },
+    "annotations": [
+      {
+        "id": "1",
+        "timestamp": "21:34",
+        "type": "transition",
+        "description": "Quick vertical pass into space behind defensive line, creating 3v2 overload"
+      },
+      {
+        "id": "2",
+        "timestamp": "23:12",
+        "type": "shape",
+        "description": "Defensive line drops too deep allowing opponent to advance into final third"
+      },
+      {
+        "id": "3",
+        "timestamp": "23:47",
+        "type": "press-error",
+        "description": "Press trigger missed by #8, allowing easy switch of play to weak side"
+      },
+      {
+        "id": "4",
+        "timestamp": "25:03",
+        "type": "recovery",
+        "description": "Excellent recovery run by #4 to cover exposed space on right flank"
+      },
+      {
+        "id": "5",
+        "timestamp": "28:15",
+        "type": "key-pass",
+        "description": "Through ball from #10 breaks defensive line, creates scoring opportunity"
+      }
+    ],
+    "metrics": {
+      "sprintCount": 22,
+      "passes": 40,
+      "passSuccess": 90,
+      "shotAccuracy": 41
+    }
+  }
+]

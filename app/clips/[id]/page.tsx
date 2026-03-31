@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
-import { VideoPlayer, type VideoStroke } from "@/components/video-player"
+import { Youtube, Play } from "lucide-react"
+import { YoutubeDrawOverlay } from "@/components/youtube-draw-overlay"
+import type { VideoStroke } from "@/components/video-player"
 import { AnnotationsTimeline } from "@/components/annotations-timeline"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -17,6 +19,21 @@ export default function ClipReviewPage() {
   const clipId = params.id as string
 
   const [clipData, setClipData] = useState<any>(null)
+
+  const getEmbedUrl = (url: string) => {
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1]
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&modestbranding=1&rel=0&loop=1&playlist=${videoId}`
+      }
+    } else if (url.includes('vimeo.com')) {
+      const videoId = url.match(/vimeo\.com\/(\d+)/)?.[1]
+      if (videoId) {
+        return `https://player.vimeo.com/video/${videoId}?autoplay=1&muted=1&autopause=0`
+      }
+    }
+    return url // fallback
+  }
   const [isLoading, setIsLoading] = useState(true)
   const [activeEvent, setActiveEvent] = useState<string | undefined>()
   const [noteText, setNoteText] = useState("")
@@ -203,14 +220,21 @@ export default function ClipReviewPage() {
                   <option value={2}>2x</option>
                 </select>
               </div>
-              <VideoPlayer
-                videoUrl={clipData.videoUrl}
-                videoRef={videoRef}
-                drawMode={isDrawMode}
-                playbackRate={playbackRate}
-                strokes={drawings}
-                onStrokeCreated={handleStrokeCreated}
-              />
+              <div className="aspect-video w-full relative bg-black rounded-lg overflow-hidden shadow-2xl">
+                <iframe
+                  src={getEmbedUrl(clipData.videoUrl)}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="Video Clip"
+                />
+                <YoutubeDrawOverlay 
+                  isDrawMode={isDrawMode}
+                  strokes={drawings}
+                  onStrokeCreated={handleStrokeCreated}
+                  onClearDrawings={clearDrawings}
+                />
+              </div>
             </div>
 
 
