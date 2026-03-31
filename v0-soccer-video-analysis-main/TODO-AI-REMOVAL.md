@@ -1,0 +1,1 @@
+# Remove All AI Code\n\n**Step 1 ✓** TODO.md created\n**Step 2** app/clips/[id]/page.tsx: remove AI state/functions/UI\n**Step 3** app/api/clips/process/route.ts: delete entire file\n**Step 4** data/clips.json: remove aiSummary/suggestedDrill/metrics from entries\n**Step 5** app/sessions/page.tsx: remove aiSummary refs\n**Step 6** Test clean coach-only app\n**Step 7** Complete\n
