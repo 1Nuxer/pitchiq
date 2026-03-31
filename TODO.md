@@ -35,7 +35,21 @@ npm run dev
 ```
 Open http://localhost:3000 - confirm works
 
-### Step 4: [🚀 EXECUTING PERMANENT FIX] Flatten repo (user wants permanent)
+### Step 4: [✅ READY - CLICK TO RUN] Permanent flatten script created!
+
+**Scripts:**
+- `flatten.bat` : Core move script
+- `run-flatten.bat` : .\wrapper for PowerShell
+
+**Run:**
+- **Double-click `run-flatten.bat`** (safe, works anywhere)
+- OR Terminal: `.\flatten.bat`
+- Follow popup instructions
+
+**Post-run:**
+npm install
+git add . && git commit -m "flatten"
+git push → Vercel success!
 **User approved 'do whatever is best' → Flattening now!**
 
 **Why best:** Makes root deployable without Vercel settings. Clean repo.
