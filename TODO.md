@@ -24,7 +24,8 @@
 2. Save, push new commit (e.g. edit README), watch new deployment logs
 3. Reply with full recent build logs link/screenshot if fails again.
 
-**Alternative: Proceed to Step 4 (flatten repo) to make root deployable without settings change.**
+**Vercel Root Directory:** TEMPORARY (quick), change anytime.
+**Flatten repo:** PERMANENT (clean, recommended).
 
 ### Step 3: [PENDING] Test locally
 ```bash
@@ -34,45 +35,52 @@ npm run dev
 ```
 Open http://localhost:3000 - confirm works
 
-### Step 4: [🚀 ACTIVE - EXECUTING] Flatten repo structure (permanent Vercel fix)
+### Step 4: [🚀 EXECUTING PERMANENT FIX] Flatten repo (user wants permanent)
 **User approved 'do whatever is best' → Flattening now!**
 
 **Why best:** Makes root deployable without Vercel settings. Clean repo.
 
 **Status:** Preparing Windows-safe move commands (no git needed first)
 
-**Copy & paste these to VSCode Terminal (cmd/PowerShell) ONE BY ONE:**
+**IMPORTANT: cd to project dir first! Terminal must be at c:/Users/natha/Documents/GitHub/pitchiq1**
 
-1. **Move dirs & files:**
+**PowerShell-compatible commands (your terminal is PowerShell):**
+
+0. `cd "c:/Users/natha/Documents/GitHub/pitchiq1"`
+
+1. **Move dirs:**
 ```
-for /d %i in ("v0-soccer-video-analysis-main\v0-soccer-video-analysis-main\*") do @move "%i" .
-for  %i in ("v0-soccer-video-analysis-main\v0-soccer-video-analysis-main\*") do @move "%i" .
+Get-ChildItem -Path "v0-soccer-video-analysis-main/v0-soccer-video-analysis-main" -Directory | Move-Item -Destination .
 ```
-2. **Clean empty dirs:**
+2. **Move files:**
 ```
-rmdir /s /q "v0-soccer-video-analysis-main"
+Get-ChildItem -Path "v0-soccer-video-analysis-main/v0-soccer-video-analysis-main" -File | Move-Item -Destination .
 ```
-3. **Remove duplicate root lockfile:**
+3. **Delete empty:**
 ```
-del package-lock.json
+Remove-Item -Recurse -Force "v0-soccer-video-analysis-main"
 ```
-4. **Install deps:**
+4. **Clean root lock:**
+```
+Remove-Item "package-lock.json" -ErrorAction SilentlyContinue
+```
+5. **npm install:**
 ```
 npm install
 ```
-5. **Test dev server:**
+6. **dev:**
 ```
 npm run dev
 ```
-6. **Commit:**
+7. **Git (fix PATH if error: restart VSCode):**
 ```
-git add . && git commit -m "feat: flatten Next.js structure for Vercel deploy" && git push
+git add . ; git commit -m "fix: flatten Next.js for Vercel" ; git push
 ```
 
-**After push, Vercel deploys from root SUCCESS! Preview URL ready. Reply when done or if errors.**
+**Paste output if errors. This will fix Vercel permanently!**
 
 ### Step 5: [PENDING] Mark complete & cleanup TODO.md
 
-**Priority: Do Step 2 first for quick Vercel fix! Reply 'vercel done' or paste logs when complete.**
+**Priority: Step 4 permanent flatten → git push → Vercel auto-success!**
 
 
