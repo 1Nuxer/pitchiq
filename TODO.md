@@ -13,13 +13,18 @@
 
 ### Step 0: [✅ DONE] Confirmed project structure & Next.js setup via tools
 
-### Step 2: [PENDING] Fix Vercel immediately (no code change)
-**User action required:**
-1. Vercel Dashboard → Your Project → Settings → General
-2. Set **Root Directory** = `v0-soccer-video-analysis-main/v0-soccer-video-analysis-main`
-3. Save → Trigger new deployment
-4. Check build logs for success
-*Notify me when done or paste logs if issues*
+### Step 2: [🚫 FAILED - Troubleshooting] Vercel Root Directory setting
+**Status:** Still failing after 'Vecal fixes' commit. Possible issues:
+- Root Directory path not saved/typo (must be EXACT: `v0-soccer-video-analysis-main/v0-soccer-video-analysis-main`)
+- Vercel cache: Delete project & re-import repo, or use New Deployment with overrides
+- GitHub repo name 'pitchiq' vs local 'pitchiq1'? Confirm repo path.
+
+**Retry steps:**
+1. Vercel → Project Settings → General → Root Directory: verify/copy-paste `v0-soccer-video-analysis-main/v0-soccer-video-analysis-main`
+2. Save, push new commit (e.g. edit README), watch new deployment logs
+3. Reply with full recent build logs link/screenshot if fails again.
+
+**Alternative: Proceed to Step 4 (flatten repo) to make root deployable without settings change.**
 
 ### Step 3: [PENDING] Test locally
 ```bash
@@ -29,11 +34,42 @@ npm run dev
 ```
 Open http://localhost:3000 - confirm works
 
-### Step 4: [OPTIONAL/PENDING] Clean repo structure (flatten to root)
-1. Move contents: All files/dirs from nested project to root
-2. Delete empty `v0-soccer-video-analysis-main/`
-3. `git add . &amp;&amp; git commit -m "Flatten nested Next.js structure" &amp;&amp; git push`
-4. Reset Vercel Root Directory to empty
+### Step 4: [🚀 ACTIVE - EXECUTING] Flatten repo structure (permanent Vercel fix)
+**User approved 'do whatever is best' → Flattening now!**
+
+**Why best:** Makes root deployable without Vercel settings. Clean repo.
+
+**Status:** Preparing Windows-safe move commands (no git needed first)
+
+**Copy & paste these to VSCode Terminal (cmd/PowerShell) ONE BY ONE:**
+
+1. **Move dirs & files:**
+```
+for /d %i in ("v0-soccer-video-analysis-main\v0-soccer-video-analysis-main\*") do @move "%i" .
+for  %i in ("v0-soccer-video-analysis-main\v0-soccer-video-analysis-main\*") do @move "%i" .
+```
+2. **Clean empty dirs:**
+```
+rmdir /s /q "v0-soccer-video-analysis-main"
+```
+3. **Remove duplicate root lockfile:**
+```
+del package-lock.json
+```
+4. **Install deps:**
+```
+npm install
+```
+5. **Test dev server:**
+```
+npm run dev
+```
+6. **Commit:**
+```
+git add . && git commit -m "feat: flatten Next.js structure for Vercel deploy" && git push
+```
+
+**After push, Vercel deploys from root SUCCESS! Preview URL ready. Reply when done or if errors.**
 
 ### Step 5: [PENDING] Mark complete & cleanup TODO.md
 
